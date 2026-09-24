@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SVARUPA
 
-## Getting Started
+**Look within.**
 
-First, run the development server:
+Modern reflection. Ancient wisdom.
+
+A quiet space to understand what you're feeling, explore timeless wisdom, and develop practices that help you live more deliberately.
+
+SVARUPA is a reflection and wellbeing companion. It is not a licensed therapist, a diagnostic tool, or a medical product.
+
+## Run locally
 
 ```bash
+npm install
+npx prisma db push
+npx tsx prisma/seed.ts
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Sample journey
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Email: `demo@svarupa.app`
+- Password: `lookwithin`
 
-## Learn More
+Admin CMS: `admin@svarupa.app` / `lookwithin`
 
-To learn more about Next.js, take a look at the following resources:
+## Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Next.js (App Router) + TypeScript
+- Tailwind CSS
+- Prisma + SQLite (local)
+- PostgreSQL / Supabase schema in `supabase/schema.sql`
+- JWT sessions (email/password + optional Google)
+- Swappable AI layer (`guided` | `openai` | `anthropic`)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Environment
 
-## Deploy on Vercel
+Copy `.env.example` to `.env`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | Prisma database (default SQLite file) |
+| `AUTH_SECRET` | Session signing key |
+| `AI_PROVIDER` | `guided` (built-in), `openai`, or `anthropic` |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Optional LLM |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional Google sign-in |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The guided provider is a retrieval-aware conversation engine. It uses verified verses from the database and will not invent scripture. When an LLM key is present, the same retrieved sources are passed in as the only citable material.
+
+## Content authenticity
+
+Seeded scripture uses public-domain translations:
+
+- Bhagavad Gita — Swami Sivananda
+- Upanishads — F. Max Müller, *Sacred Books of the East* (1879)
+- Yoga Sutras — Swami Vivekananda (1896) and James Haughton Woods (1914)
+- Valmiki Ramayana 1.1.1 — Ralph T. H. Griffith (1870–74)
+
+Each verse stores Sanskrit, transliteration, translation, translator, context, citation, and provenance. Commentaries are labelled **Traditional commentary**, **Modern interpretation**, or **AI-generated reflection**.
+
+## Privacy
+
+Journal entries, reflections, and sit sessions are per-user. There are no public journal URLs. `/journal`, `/reflect`, and `/me` send `noindex`. Data export and account deletion live in Settings.

@@ -1,0 +1,363 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  passwordHash        String?
+  name                String?
+  image               String?
+  emailVerified       DateTime?
+  googleId            String?   @unique
+  role                String    @default("user")
+  onboardingCompleted Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  deletedAt           DateTime?
+
+  preferences       UserPreference?
+  checkins          EmotionalCheckin[]
+  reflections       ReflectionSession[]
+  journalEntries    JournalEntry[]
+  sadhanas          Sadhana[]
+  practiceSessions  PracticeSession[]
+  savedWisdom       SavedWisdom[]
+  weeklyReflections WeeklyReflection[]
+  themeStats        UserThemeStat[]
+  passwordResets    PasswordReset[]
+  sitSessions       SitSession[]
+}
+
+model UserPreference {
+  id                     String  @id @default(cuid())
+  userId                 String  @unique
+  user                   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aiTone                 String  @default("balanced")
+  language               String  @default("en")
+  philosophyFamiliarity  String  @default("new")
+  reasons                String  @default("[]")
+  exploreTopics          String  @default("[]")
+  notificationsEnabled   Boolean @default(true)
+  notifyHour             Int     @default(20)
+  theme                  String  @default("system")
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model EmotionalCheckin {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emotion        String
+  customEmotion  String?
+  createdAt      DateTime @default(now())
+}
+
+model ReflectionSession {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String?
+  status    String   @default("active")
+  excerpt   String?
+  state     String   @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages ReflectionMessage[]
+  insight  ReflectionInsight?
+}
+
+model ReflectionMessage {
+  id        String            @id @default(cuid())
+  sessionId String
+  session   ReflectionSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  chips     String?
+  kind      String            @default("text")
+  meta      String?
+  createdAt DateTime          @default(now())
+}
+
+model ReflectionInsight {
+  id        String            @id @default(cuid())
+  sessionId String            @unique
+  session   ReflectionSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  emotion   String?
+  trigger   String?
+  concern   String?
+  theme     String?
+  summary   String?
+  createdAt DateTime          @default(now())
+}
+
+model JournalEntry {
+  id                    String   @id @default(cuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date                  DateTime @default(now())
+  howIArrived           String?
+  whatHappened          String?
+  whatIFelt             String?
+  whatINoticed          String?
+  whatIWantToRemember   String?
+  freeWrite             String?
+  favorite              Boolean  @default(false)
+  emotionTags           String   @default("[]")
+  source                String   @default("journal")
+  sitQuestion           String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  themes JournalTheme[]
+}
+
+model Theme {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  kind        String  @default("lived")
+
+  journalLinks JournalTheme[]
+  verseLinks   VerseTheme[]
+  userStats    UserThemeStat[]
+  concepts     WisdomConcept[]
+}
+
+model JournalTheme {
+  journalId String
+  themeId   String
+  journal   JournalEntry @relation(fields: [journalId], references: [id], onDelete: Cascade)
+  theme     Theme        @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@id([journalId, themeId])
+}
+
+model UserThemeStat {
+  userId   String
+  themeId  String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme    Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  count    Int      @default(0)
+  lastSeen DateTime @default(now())
+  monthKey String   @default("")
+
+  @@id([userId, themeId, monthKey])
+}
+
+model WisdomSource {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  category    String
+  description String
+  tradition   String?
+  period      String?
+  published   Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  scriptures Scripture[]
+}
+
+model Scripture {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  title       String
+  sourceId    String
+  source      WisdomSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  description String
+  published   Boolean      @default(true)
+
+  chapters ScriptureChapter[]
+}
+
+model ScriptureChapter {
+  id          String    @id @default(cuid())
+  scriptureId String
+  scripture   Scripture @relation(fields: [scriptureId], references: [id], onDelete: Cascade)
+  number      Int
+  title       String
+  subtitle    String?
+
+  verses ScriptureVerse[]
+
+  @@unique([scriptureId, number])
+}
+
+model ScriptureVerse {
+  id              String           @id @default(cuid())
+  chapterId       String
+  chapter         ScriptureChapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  number          Int
+  sanskrit        String
+  transliteration String
+  translation     String
+  translator      String
+  context         String
+  citation        String
+  provenance      String           @default("verified")
+  published       Boolean          @default(true)
+
+  commentaries Commentary[]
+  themes       VerseTheme[]
+  savedBy      SavedWisdom[]
+
+  @@unique([chapterId, number])
+}
+
+model VerseTheme {
+  verseId String
+  themeId String
+  verse   ScriptureVerse @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  theme   Theme          @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@id([verseId, themeId])
+}
+
+model Commentary {
+  id        String         @id @default(cuid())
+  verseId   String
+  verse     ScriptureVerse @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  tradition String
+  kind      String
+  author    String?
+  body      String
+  citation  String?
+}
+
+model PhilosophicalTradition {
+  id               String  @id @default(cuid())
+  slug             String  @unique
+  name             String
+  summary          String
+  viewOnSuffering  String?
+  viewOnSelf       String?
+  viewOnPractice   String?
+  published        Boolean @default(true)
+  sortOrder        Int     @default(0)
+}
+
+model WisdomConcept {
+  id                   String  @id @default(cuid())
+  slug                 String  @unique
+  name                 String
+  traditionalPerspective String
+  modernInterpretation String
+  themeId              String?
+  theme                Theme?  @relation(fields: [themeId], references: [id])
+  relatedVerseIds      String  @default("[]")
+  published            Boolean @default(true)
+}
+
+model Practice {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  title       String
+  category    String
+  durationMin Int
+  description String
+  steps       String
+  guidance    String
+  sitQuestion String?
+  published   Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  sessions PracticeSession[]
+  items    SadhanaItem[]
+}
+
+model Sadhana {
+  id          String  @id @default(cuid())
+  userId      String?
+  user        User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  timeOfDay   String
+  durationMin Int
+  status      String  @default("active")
+  isTemplate  Boolean @default(false)
+  description String?
+
+  items    SadhanaItem[]
+  sessions PracticeSession[]
+}
+
+model SadhanaItem {
+  id          String   @id @default(cuid())
+  sadhanaId   String
+  sadhana     Sadhana  @relation(fields: [sadhanaId], references: [id], onDelete: Cascade)
+  order       Int
+  title       String
+  durationMin Int
+  practiceId  String?
+  practice    Practice? @relation(fields: [practiceId], references: [id])
+}
+
+model PracticeSession {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  practiceId  String?
+  practice    Practice? @relation(fields: [practiceId], references: [id])
+  sadhanaId   String?
+  sadhana     Sadhana?  @relation(fields: [sadhanaId], references: [id])
+  completedAt DateTime  @default(now())
+  durationMin Int
+  notes       String?
+}
+
+model SavedWisdom {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verseId   String?
+  verse     ScriptureVerse? @relation(fields: [verseId], references: [id])
+  conceptId String?
+  note      String?
+  createdAt DateTime        @default(now())
+}
+
+model WeeklyReflection {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekStart     DateTime
+  summary       String
+  whatChanged   String?
+  whatRepeated  String?
+  whatSurprised String?
+  carryForward  String?
+  createdAt     DateTime @default(now())
+}
+
+model JournalPrompt {
+  id       String @id @default(cuid())
+  text     String
+  category String?
+}
+
+model SitSession {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question    String
+  durationMin Int      @default(3)
+  completed   Boolean  @default(false)
+  journalId   String?
+  verseId     String?
+  createdAt   DateTime @default(now())
+}
