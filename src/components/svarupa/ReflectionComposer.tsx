@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { startReflectionAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
-import { cueAfterCompletedWord } from "@/lib/composer-prompts";
+import { suggestionsAfterCompletedWord } from "@/lib/composer-prompts";
 import { cn } from "@/lib/utils";
 
 export function ReflectionComposer({
@@ -24,8 +24,8 @@ export function ReflectionComposer({
   const [pending, setPending] = useState(false);
   const [dismissed, setDismissed] = useState<string | null>(null);
 
-  const cue = useMemo(() => cueAfterCompletedWord(text), [text]);
-  const suggestions = cue && dismissed !== cue.id ? cue.questions : [];
+  const cue = useMemo(() => suggestionsAfterCompletedWord(text), [text]);
+  const suggestions = cue && dismissed !== cue.key ? cue.questions : [];
 
   async function submit(value = text) {
     const next = value.trim();
@@ -75,7 +75,7 @@ export function ReflectionComposer({
       />
       {suggestions.length ? (
         <div id="composer-suggestions" className="animate-fade-up mt-4">
-          <p className="text-caption mb-2">A question, if you want one</p>
+          <p className="text-caption mb-2">About “{cue?.word}”</p>
           <ul className="flex flex-wrap gap-2" aria-label="Suggested questions">
             {suggestions.map((question) => (
               <li key={question}>
@@ -92,7 +92,7 @@ export function ReflectionComposer({
           <button
             type="button"
             className="mt-2 text-xs text-muted underline-offset-4 hover:underline"
-            onClick={() => cue && setDismissed(cue.id)}
+            onClick={() => cue && setDismissed(cue.key)}
           >
             Hide these
           </button>
