@@ -30,7 +30,7 @@ Admin CMS: `admin@svarupa.app` / `lookwithin`
 
 - Next.js (App Router) + TypeScript
 - Tailwind CSS
-- Prisma + SQLite locally, Turso (libSQL) on Vercel
+- Prisma + SQLite, persisted on Vercel with Blob (no separate database server)
 - JWT sessions (email/password + optional Google)
 - Swappable AI layer (`guided` | `openai` | `anthropic`)
 
@@ -40,8 +40,8 @@ Copy `.env.example` to `.env`.
 
 | Variable | Purpose |
 | --- | --- |
-| `DATABASE_URL` | `file:./dev.db` locally, or a `libsql://` Turso URL in production |
-| `TURSO_AUTH_TOKEN` | Turso token, only when `DATABASE_URL` is remote |
+| `DATABASE_URL` | Local SQLite file (`file:./dev.db`) |
+| `BLOB_READ_WRITE_TOKEN` | Set by Vercel when the Blob store is connected |
 | `AUTH_SECRET` | Session signing key |
 | `AI_PROVIDER` | `guided` (built-in), `openai`, or `anthropic` |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Optional LLM |

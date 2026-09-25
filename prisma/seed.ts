@@ -1,7 +1,8 @@
 import bcrypt from "bcryptjs";
-import { db } from "../src/lib/db";
+import { db, prepareDatabase } from "../src/lib/db";
 
 async function main() {
+  await prepareDatabase();
   await db.sitSession.deleteMany();
   await db.weeklyReflection.deleteMany();
   await db.savedWisdom.deleteMany();
