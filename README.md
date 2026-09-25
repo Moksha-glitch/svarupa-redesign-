@@ -30,8 +30,7 @@ Admin CMS: `admin@svarupa.app` / `lookwithin`
 
 - Next.js (App Router) + TypeScript
 - Tailwind CSS
-- Prisma + SQLite (local)
-- PostgreSQL / Supabase schema in `supabase/schema.sql`
+- Prisma + SQLite locally, Turso (libSQL) on Vercel
 - JWT sessions (email/password + optional Google)
 - Swappable AI layer (`guided` | `openai` | `anthropic`)
 
@@ -41,7 +40,8 @@ Copy `.env.example` to `.env`.
 
 | Variable | Purpose |
 | --- | --- |
-| `DATABASE_URL` | Prisma database (default SQLite file) |
+| `DATABASE_URL` | `file:./dev.db` locally, or a `libsql://` Turso URL in production |
+| `TURSO_AUTH_TOKEN` | Turso token, only when `DATABASE_URL` is remote |
 | `AUTH_SECRET` | Session signing key |
 | `AI_PROVIDER` | `guided` (built-in), `openai`, or `anthropic` |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Optional LLM |

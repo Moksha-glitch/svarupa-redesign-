@@ -12,22 +12,39 @@ import { retrieveWisdom } from "@/lib/ai/rag";
 
 const emailSchema = z.string().email();
 
+function databaseUnavailable(error: unknown) {
+  return (
+    !!error &&
+    typeof error === "object" &&
+    "name" in error &&
+    (error as { name: string }).name === "PrismaClientInitializationError"
+  );
+}
+
 export async function signupAction(_: unknown, form: FormData) {
   const email = String(form.get("email") || "").toLowerCase().trim();
   const password = String(form.get("password") || "");
   const name = String(form.get("name") || "").trim();
   if (!emailSchema.safeParse(email).success) return { error: "Please use a valid email." };
   if (password.length < 8) return { error: "Use at least eight characters." };
-  const existing = await db.user.findUnique({ where: { email } });
-  if (existing) return { error: "An account with that email already exists." };
-  const user = await db.user.create({
-    data: {
-      email,
-      name: name || null,
-      passwordHash: await hashPassword(password),
-      preferences: { create: {} },
-    },
-  });
+  let user;
+  try {
+    const existing = await db.user.findUnique({ where: { email } });
+    if (existing) return { error: "An account with that email already exists." };
+    user = await db.user.create({
+      data: {
+        email,
+        name: name || null,
+        passwordHash: await hashPassword(password),
+        preferences: { create: {} },
+      },
+    });
+  } catch (error) {
+    if (databaseUnavailable(error)) {
+      return { error: "The database isn't connected on this deployment yet." };
+    }
+    throw error;
+  }
   await createSession({
     id: user.id,
     email: user.email,
